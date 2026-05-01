@@ -1,0 +1,1220 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>數位遺囑</title>
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+TC:wght@400;600;700&family=Noto+Sans+TC:wght@400;500;600&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg: #f5f2ee;
+      --card: #fdfcfb;
+      --text: #1c1917;
+      --muted: #78716c;
+      --subtle: #a8a29e;
+      --primary: #292524;
+      --primary-hover: #1c1917;
+      --accent: #b45309;
+      --accent-light: #fef3c7;
+      --accent-border: #fde68a;
+      --danger: #b91c1c;
+      --danger-light: #fee2e2;
+      --success: #15803d;
+      --success-light: #dcfce7;
+      --border: #e7e5e4;
+      --border-strong: #d6d3d1;
+      --shadow-sm: 0 1px 8px rgba(0,0,0,0.06);
+      --shadow: 0 4px 24px rgba(0,0,0,0.09);
+      --shadow-lg: 0 16px 48px rgba(0,0,0,0.14);
+      --radius: 16px;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: 'Noto Sans TC', sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.7;
+      min-height: 100vh;
+    }
+
+    /* ── Screens ── */
+    .screen { display: none; min-height: 100vh; }
+    .screen.active { display: flex; flex-direction: column; }
+
+    /* ── Centered layout (setup, locked, viewer) ── */
+    .center-layout {
+      flex: 1;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 32px 20px;
+    }
+
+    .center-box {
+      background: var(--card);
+      border-radius: 24px;
+      padding: 48px 44px;
+      width: 100%;
+      max-width: 480px;
+      box-shadow: var(--shadow-lg);
+      border: 1px solid var(--border);
+    }
+
+    .center-box.wide { max-width: 600px; }
+
+    /* ── Logo / Brand ── */
+    .brand {
+      font-family: 'Noto Serif TC', serif;
+      font-size: 1.5rem;
+      font-weight: 700;
+      letter-spacing: 0.04em;
+      color: var(--text);
+      margin-bottom: 6px;
+    }
+
+    .brand-sub {
+      font-size: 0.88rem;
+      color: var(--muted);
+      margin-bottom: 36px;
+    }
+
+    .section-icon {
+      font-size: 2.8rem;
+      margin-bottom: 16px;
+      display: block;
+    }
+
+    /* ── PIN input ── */
+    .pin-row {
+      display: flex;
+      gap: 10px;
+      justify-content: center;
+      margin: 24px 0;
+    }
+
+    .pin-digit {
+      width: 52px;
+      height: 62px;
+      border: 2px solid var(--border-strong);
+      border-radius: 12px;
+      text-align: center;
+      font-size: 1.6rem;
+      font-weight: 700;
+      font-family: 'Noto Serif TC', serif;
+      background: var(--bg);
+      color: var(--text);
+      transition: border-color 0.15s, box-shadow 0.15s;
+      caret-color: var(--accent);
+    }
+
+    .pin-digit:focus {
+      outline: none;
+      border-color: var(--accent);
+      box-shadow: 0 0 0 3px rgba(180,83,9,0.12);
+    }
+
+    .pin-error {
+      text-align: center;
+      color: var(--danger);
+      font-size: 0.88rem;
+      min-height: 20px;
+      margin-bottom: 8px;
+    }
+
+    /* ── Steps (setup wizard) ── */
+    .step-indicator {
+      display: flex;
+      gap: 8px;
+      margin-bottom: 32px;
+      justify-content: center;
+    }
+
+    .step-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: var(--border-strong);
+      transition: background 0.2s;
+    }
+
+    .step-dot.active { background: var(--accent); }
+    .step-dot.done { background: var(--success); }
+
+    /* ── Forms ── */
+    .form-group { margin-bottom: 18px; }
+    .form-group:last-child { margin-bottom: 0; }
+
+    .form-label {
+      display: block;
+      font-size: 0.82rem;
+      font-weight: 600;
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      margin-bottom: 7px;
+    }
+
+    .form-input, .form-textarea, .form-select {
+      width: 100%;
+      background: var(--bg);
+      border: 1.5px solid var(--border-strong);
+      border-radius: 11px;
+      padding: 12px 15px;
+      font-size: 0.95rem;
+      font-family: 'Noto Sans TC', sans-serif;
+      color: var(--text);
+      transition: border-color 0.15s, box-shadow 0.15s;
+    }
+
+    .form-textarea { min-height: 110px; resize: vertical; }
+
+    .form-input:focus, .form-textarea:focus, .form-select:focus {
+      outline: none;
+      border-color: var(--accent);
+      box-shadow: 0 0 0 3px rgba(180,83,9,0.1);
+    }
+
+    .form-hint {
+      font-size: 0.82rem;
+      color: var(--subtle);
+      margin-top: 6px;
+      line-height: 1.5;
+    }
+
+    .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+
+    /* ── Buttons ── */
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      padding: 13px 22px;
+      border-radius: 11px;
+      border: none;
+      font-size: 0.93rem;
+      font-weight: 600;
+      font-family: 'Noto Sans TC', sans-serif;
+      cursor: pointer;
+      transition: all 0.15s ease;
+      width: 100%;
+    }
+
+    .btn + .btn { margin-top: 10px; }
+
+    .btn-primary { background: var(--primary); color: white; }
+    .btn-primary:hover { background: var(--primary-hover); }
+
+    .btn-accent { background: var(--accent); color: white; }
+    .btn-accent:hover { background: #92400e; }
+
+    .btn-secondary {
+      background: transparent;
+      color: var(--muted);
+      border: 1.5px solid var(--border-strong);
+    }
+    .btn-secondary:hover { background: var(--bg); color: var(--text); }
+
+    .btn-danger { background: transparent; color: var(--danger); border: 1.5px solid #fca5a5; }
+    .btn-danger:hover { background: var(--danger-light); }
+
+    .btn-ghost { background: transparent; color: var(--muted); border: none; font-size: 0.88rem; padding: 8px; }
+    .btn-ghost:hover { color: var(--text); }
+
+    .btn-sm { padding: 8px 16px; font-size: 0.85rem; width: auto; }
+    .btn-row-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+    .btn-row-2 .btn { margin-top: 0; }
+
+    /* ── Editor layout ── */
+    .editor-topbar {
+      background: var(--card);
+      border-bottom: 1px solid var(--border);
+      padding: 0 28px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      height: 58px;
+      position: sticky;
+      top: 0;
+      z-index: 50;
+      box-shadow: var(--shadow-sm);
+    }
+
+    .topbar-brand {
+      font-family: 'Noto Serif TC', serif;
+      font-weight: 700;
+      font-size: 1rem;
+      letter-spacing: 0.04em;
+    }
+
+    .topbar-actions { display: flex; gap: 10px; align-items: center; }
+
+    .editor-wrap {
+      max-width: 780px;
+      margin: 0 auto;
+      padding: 32px 24px 80px;
+    }
+
+    /* ── Cards ── */
+    .card {
+      background: var(--card);
+      border-radius: var(--radius);
+      padding: 26px;
+      margin-bottom: 18px;
+      box-shadow: var(--shadow-sm);
+      border: 1px solid var(--border);
+    }
+
+    .card-head {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 20px;
+      padding-bottom: 14px;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .card-title {
+      font-family: 'Noto Serif TC', serif;
+      font-size: 1rem;
+      font-weight: 700;
+    }
+
+    /* ── Status banner ── */
+    .status-banner {
+      border-radius: 12px;
+      padding: 14px 18px;
+      margin-bottom: 18px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      font-weight: 600;
+      font-size: 0.93rem;
+    }
+
+    .status-ok { background: var(--success-light); color: #14532d; border: 1px solid #bbf7d0; }
+    .status-warn { background: var(--accent-light); color: #78350f; border: 1px solid var(--accent-border); }
+
+    /* ── Preview toggle ── */
+    .toggle-wrap {
+      display: flex;
+      align-items: center;
+      gap: 9px;
+      font-size: 0.85rem;
+      color: var(--muted);
+      font-weight: 500;
+    }
+
+    .toggle-switch {
+      position: relative;
+      width: 42px;
+      height: 23px;
+      flex-shrink: 0;
+    }
+
+    .toggle-switch input { opacity: 0; width: 0; height: 0; position: absolute; }
+
+    .toggle-slider {
+      position: absolute;
+      inset: 0;
+      background: var(--border-strong);
+      border-radius: 999px;
+      cursor: pointer;
+      transition: 0.2s;
+    }
+
+    .toggle-slider::before {
+      content: '';
+      position: absolute;
+      width: 17px;
+      height: 17px;
+      left: 3px;
+      top: 3px;
+      background: white;
+      border-radius: 50%;
+      transition: 0.2s;
+      box-shadow: 0 1px 4px rgba(0,0,0,0.18);
+    }
+
+    .toggle-switch input:checked + .toggle-slider { background: var(--accent); }
+    .toggle-switch input:checked + .toggle-slider::before { transform: translateX(19px); }
+
+    /* ── Recipient cards ── */
+    .r-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(190px, 1fr));
+      gap: 12px;
+      margin-top: 4px;
+    }
+
+    .r-card {
+      background: var(--bg);
+      border: 1.5px solid var(--border);
+      border-radius: 12px;
+      padding: 16px;
+    }
+
+    .r-card h4 {
+      font-family: 'Noto Serif TC', serif;
+      font-size: 0.97rem;
+      font-weight: 700;
+      margin-bottom: 5px;
+    }
+
+    .r-card .r-meta {
+      font-size: 0.82rem;
+      color: var(--muted);
+      margin-bottom: 12px;
+      line-height: 1.5;
+    }
+
+    /* ── Public viewer ── */
+    .viewer-header {
+      background: var(--card);
+      border-bottom: 1px solid var(--border);
+      padding: 20px 28px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .viewer-wrap {
+      max-width: 680px;
+      margin: 0 auto;
+      padding: 40px 24px 80px;
+    }
+
+    .recipient-select-card {
+      background: var(--card);
+      border: 1.5px solid var(--border);
+      border-radius: 14px;
+      padding: 18px 22px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      cursor: pointer;
+      transition: box-shadow 0.15s, border-color 0.15s;
+      margin-bottom: 10px;
+    }
+
+    .recipient-select-card:hover {
+      border-color: var(--accent);
+      box-shadow: 0 4px 16px rgba(180,83,9,0.1);
+    }
+
+    .recipient-select-card h4 {
+      font-family: 'Noto Serif TC', serif;
+      font-size: 1rem;
+      font-weight: 700;
+      margin-bottom: 3px;
+    }
+
+    .recipient-select-card p { font-size: 0.83rem; color: var(--muted); }
+
+    .arrow { color: var(--subtle); font-size: 1.2rem; }
+
+    /* ── Modal overlay ── */
+    .modal-overlay {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.5);
+      z-index: 200;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+    }
+
+    .modal-overlay.open { display: flex; }
+
+    .modal {
+      background: var(--card);
+      border-radius: 20px;
+      padding: 36px;
+      width: 100%;
+      max-width: 460px;
+      box-shadow: var(--shadow-lg);
+    }
+
+    .modal h3 {
+      font-family: 'Noto Serif TC', serif;
+      font-size: 1.1rem;
+      margin-bottom: 6px;
+    }
+
+    .modal .modal-sub {
+      font-size: 0.87rem;
+      color: var(--muted);
+      margin-bottom: 22px;
+    }
+
+    /* ── Letter display ── */
+    .letter-box {
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 20px;
+      white-space: pre-wrap;
+      word-break: break-word;
+      font-size: 0.95rem;
+      line-height: 1.9;
+      margin-top: 16px;
+      min-height: 60px;
+      font-family: 'Noto Sans TC', sans-serif;
+    }
+
+    .info-row {
+      font-size: 0.88rem;
+      color: var(--muted);
+      margin-bottom: 7px;
+    }
+
+    .info-row strong { color: var(--text); }
+
+    .divider { border: none; border-top: 1px solid var(--border); margin: 20px 0; }
+
+    .hidden { display: none !important; }
+
+    .text-center { text-align: center; }
+    .mb-0 { margin-bottom: 0 !important; }
+
+    @media (max-width: 560px) {
+      .center-box { padding: 36px 24px; }
+      .pin-digit { width: 44px; height: 54px; font-size: 1.4rem; }
+      .form-row { grid-template-columns: 1fr; }
+      .editor-topbar { padding: 0 16px; }
+      .editor-wrap { padding: 20px 16px 60px; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- ══════════════════════════════════════
+     SCREEN 1: 首次設定 (Setup Wizard)
+══════════════════════════════════════ -->
+<div class="screen active" id="screen-setup">
+  <div class="center-layout">
+    <div class="center-box">
+      <div class="text-center">
+        <span class="section-icon">📜</span>
+        <div class="brand">數位遺囑系統</div>
+        <div class="brand-sub">讓重要的話，在對的時刻傳達給在乎的人。</div>
+      </div>
+
+      <div class="step-indicator">
+        <div class="step-dot active" id="dot0"></div>
+        <div class="step-dot" id="dot1"></div>
+        <div class="step-dot" id="dot2"></div>
+      </div>
+
+      <!-- Step 0: 說明 -->
+      <div id="setup-step-0">
+        <p style="font-size:0.95rem; color:var(--muted); margin-bottom:24px; line-height:1.9;">
+          這是一個<strong style="color:var(--text)">完全儲存在你裝置本機</strong>的數位遺囑系統。<br><br>
+          你可以設定一段冷卻期，若超過該時間未有任何活動，系統將自動對外公開你留給家人或朋友的信件。<br><br>
+          首先，請設定一組 <strong style="color:var(--text)">六位數密碼</strong>，用於進入管理頁面。
+        </p>
+        <button class="btn btn-primary" onclick="goSetupStep(1)">開始設立 →</button>
+      </div>
+
+      <!-- Step 1: 設定密碼 -->
+      <div id="setup-step-1" class="hidden">
+        <p style="font-size:0.93rem; color:var(--muted); margin-bottom:4px;">請設定六位數管理密碼</p>
+        <p class="form-hint" style="margin-bottom:0">此密碼用於進入編輯頁面，請牢記。</p>
+        <div class="pin-row" id="setup-pin-row">
+          <input class="pin-digit" maxlength="1" type="password" inputmode="numeric" />
+          <input class="pin-digit" maxlength="1" type="password" inputmode="numeric" />
+          <input class="pin-digit" maxlength="1" type="password" inputmode="numeric" />
+          <input class="pin-digit" maxlength="1" type="password" inputmode="numeric" />
+          <input class="pin-digit" maxlength="1" type="password" inputmode="numeric" />
+          <input class="pin-digit" maxlength="1" type="password" inputmode="numeric" />
+        </div>
+        <p style="font-size:0.93rem; color:var(--muted); margin-bottom:4px; margin-top:16px;">請再輸入一次確認</p>
+        <div class="pin-row" id="setup-pin-confirm-row">
+          <input class="pin-digit" maxlength="1" type="password" inputmode="numeric" />
+          <input class="pin-digit" maxlength="1" type="password" inputmode="numeric" />
+          <input class="pin-digit" maxlength="1" type="password" inputmode="numeric" />
+          <input class="pin-digit" maxlength="1" type="password" inputmode="numeric" />
+          <input class="pin-digit" maxlength="1" type="password" inputmode="numeric" />
+          <input class="pin-digit" maxlength="1" type="password" inputmode="numeric" />
+        </div>
+        <p class="pin-error" id="setup-pin-error"></p>
+        <button class="btn btn-primary" onclick="confirmSetupPin()">確認密碼</button>
+        <button class="btn btn-ghost" onclick="goSetupStep(0)">← 返回</button>
+      </div>
+
+      <!-- Step 2: 冷卻天數 -->
+      <div id="setup-step-2" class="hidden">
+        <p style="font-size:0.93rem; color:var(--muted); margin-bottom:16px;">設定冷卻天數：超過幾天未活躍後，遺囑自動公開？</p>
+        <div class="form-group">
+          <label class="form-label">冷卻天數</label>
+          <input class="form-input" type="number" id="setup-threshold" min="1" value="365" />
+          <p class="form-hint">建議設定 180～365 天，你需要定期回來按「我還在」來重置計時。</p>
+        </div>
+        <div class="form-group">
+          <label class="form-label">信件加密主密碼</label>
+          <input class="form-input" type="password" id="setup-master-pw" placeholder="設定一組主密碼（與管理密碼可以相同或不同）" />
+          <p class="form-hint">此密碼用於加密每封信件的內容，請務必記住。</p>
+        </div>
+        <button class="btn btn-primary" onclick="finishSetup()">完成設定，進入管理頁面 →</button>
+        <button class="btn btn-ghost" onclick="goSetupStep(1)">← 返回</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════
+     SCREEN 2: 訪客頁 - 時間未到
+══════════════════════════════════════ -->
+<div class="screen" id="screen-locked">
+  <div class="center-layout">
+    <div class="center-box text-center">
+      <span class="section-icon">🔒</span>
+      <div class="brand">數位遺囑</div>
+      <p style="color:var(--muted); font-size:0.97rem; margin-top:8px; margin-bottom:32px; line-height:1.9;">
+        這份遺囑目前尚未公開。<br>如果你是建立者，請定期回來更新活躍時間。
+      </p>
+      <div style="display:flex; justify-content:flex-end;">
+        <button class="btn btn-ghost btn-sm" onclick="openAdminLogin()" style="width:auto;">⚙️ 管理者入口</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════
+     SCREEN 3: 訪客頁 - 遺囑公開
+══════════════════════════════════════ -->
+<div class="screen" id="screen-public">
+  <div class="viewer-header">
+    <div style="font-family:'Noto Serif TC',serif; font-weight:700; font-size:1rem;">數位遺囑</div>
+    <button class="btn btn-ghost btn-sm" onclick="openAdminLogin()" style="width:auto;">⚙️</button>
+  </div>
+  <div class="viewer-wrap">
+    <div class="status-banner status-warn" style="margin-bottom:28px;">
+      <span>📬</span>
+      <span>這份遺囑已啟動，請選擇你的身分閱讀專屬信件。</span>
+    </div>
+
+    <div class="card" style="margin-bottom:24px;">
+      <p id="public-message-view" style="color:var(--muted); font-size:0.95rem; line-height:1.9;"></p>
+    </div>
+
+    <div style="font-family:'Noto Serif TC',serif; font-size:0.9rem; color:var(--muted); margin-bottom:14px; text-transform:uppercase; letter-spacing:0.06em;">選擇你的身分</div>
+    <div id="public-recipient-list"></div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════
+     SCREEN 4: 管理員頁面（編輯）
+══════════════════════════════════════ -->
+<div class="screen" id="screen-editor">
+  <div class="editor-topbar">
+    <div class="topbar-brand">📜 數位遺囑管理</div>
+    <div class="topbar-actions">
+      <div class="toggle-wrap">
+        <span style="font-size:0.82rem;">預覽模式</span>
+        <label class="toggle-switch">
+          <input type="checkbox" id="previewToggle" />
+          <span class="toggle-slider"></span>
+        </label>
+      </div>
+      <button class="btn btn-ghost btn-sm" onclick="logoutEditor()" style="width:auto;">登出</button>
+    </div>
+  </div>
+
+  <div class="editor-wrap">
+    <div id="editor-status-banner" class="status-banner status-ok">
+      <span>✅</span>
+      <span id="editor-status-text">正常運作中</span>
+    </div>
+
+    <!-- 活躍狀態 -->
+    <div class="card">
+      <div class="card-head">
+        <div class="card-title">活躍狀態</div>
+      </div>
+      <div class="info-row">最後活躍：<strong id="editor-last-active">—</strong></div>
+      <div class="info-row">距離啟動：<strong id="editor-remaining">—</strong></div>
+      <button class="btn btn-accent" id="pingBtn" style="margin-top:14px;">✋ 我還在，重置計時</button>
+    </div>
+
+    <!-- 基本設定 -->
+    <div class="card">
+      <div class="card-head"><div class="card-title">基本設定</div></div>
+      <div class="form-group">
+        <label class="form-label">公開頁面說明文字</label>
+        <textarea class="form-textarea" id="editor-public-message" placeholder="遺囑啟動後，家人看到的第一段文字。"></textarea>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">冷卻天數</label>
+          <input class="form-input" type="number" id="editor-threshold" min="1" value="365" />
+        </div>
+        <div class="form-group">
+          <label class="form-label">信件加密主密碼</label>
+          <input class="form-input" type="password" id="editor-master-pw" placeholder="輸入主密碼以儲存或更新信件" />
+        </div>
+      </div>
+      <div class="btn-row-2" style="margin-top:6px;">
+        <button class="btn btn-primary" id="saveConfigBtn">儲存設定</button>
+        <button class="btn btn-secondary" id="exportBtn">📦 匯出備份</button>
+      </div>
+      <button class="btn btn-danger" id="resetBtn" style="margin-top:10px;">清除所有資料</button>
+    </div>
+
+    <!-- 收件者管理 -->
+    <div class="card">
+      <div class="card-head">
+        <div class="card-title">收件者管理</div>
+        <button class="btn btn-primary btn-sm" id="openAddBtn">＋ 新增</button>
+      </div>
+      <div id="editor-recipient-manager">
+        <p style="color:var(--subtle); font-size:0.88rem;">尚未建立任何收件者。</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════
+     MODAL: 管理者登入
+══════════════════════════════════════ -->
+<div class="modal-overlay" id="modal-admin-login">
+  <div class="modal">
+    <h3>管理者登入</h3>
+    <p class="modal-sub">請輸入六位數管理密碼</p>
+    <div class="pin-row" id="login-pin-row">
+      <input class="pin-digit" maxlength="1" type="password" inputmode="numeric" />
+      <input class="pin-digit" maxlength="1" type="password" inputmode="numeric" />
+      <input class="pin-digit" maxlength="1" type="password" inputmode="numeric" />
+      <input class="pin-digit" maxlength="1" type="password" inputmode="numeric" />
+      <input class="pin-digit" maxlength="1" type="password" inputmode="numeric" />
+      <input class="pin-digit" maxlength="1" type="password" inputmode="numeric" />
+    </div>
+    <p class="pin-error" id="login-pin-error"></p>
+    <button class="btn btn-primary" onclick="submitAdminLogin()">登入</button>
+    <button class="btn btn-ghost" onclick="closeModal('modal-admin-login')">取消</button>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════
+     MODAL: 新增 / 編輯收件者
+══════════════════════════════════════ -->
+<div class="modal-overlay" id="modal-recipient">
+  <div class="modal">
+    <h3 id="modal-recipient-title">新增收件者</h3>
+    <p class="modal-sub">信件將以主密碼加密，僅收件者可解開。</p>
+    <input type="hidden" id="editing-index" value="-1" />
+
+    <div class="form-group">
+      <label class="form-label">收件者名稱</label>
+      <input class="form-input" type="text" id="r-name" placeholder="例如：媽媽" />
+    </div>
+
+    <div class="form-group">
+      <label class="form-label">驗證方式</label>
+      <select class="form-select" id="r-use-question">
+        <option value="yes">問題驗證（收件者回答私密問題）</option>
+        <option value="no">主密碼驗證</option>
+      </select>
+    </div>
+
+    <div id="r-question-fields">
+      <div class="form-group">
+        <label class="form-label">驗證問題</label>
+        <input class="form-input" type="text" id="r-question" placeholder="例如：我最喜歡的一道菜是什麼？" />
+      </div>
+      <div class="form-group">
+        <label class="form-label">答案（不區分大小寫）</label>
+        <input class="form-input" type="text" id="r-answer" placeholder="例如：滷肉飯" />
+      </div>
+    </div>
+
+    <div class="form-group">
+      <label class="form-label">專屬信件</label>
+      <textarea class="form-textarea" id="r-letter" placeholder="寫下你想對這個人說的話…"></textarea>
+    </div>
+
+    <div class="btn-row-2">
+      <button class="btn btn-primary" id="saveRecipientBtn">儲存</button>
+      <button class="btn btn-secondary" onclick="closeModal('modal-recipient')">取消</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════
+     MODAL: 閱讀信件
+══════════════════════════════════════ -->
+<div class="modal-overlay" id="modal-reader">
+  <div class="modal">
+    <h3 id="reader-title">閱讀信件</h3>
+
+    <div id="reader-question-area">
+      <p id="reader-question-text" class="modal-sub"></p>
+      <div class="form-group">
+        <label class="form-label">你的答案</label>
+        <input class="form-input" type="text" id="reader-answer" placeholder="輸入答案" />
+      </div>
+      <button class="btn btn-primary" id="reader-unlock-btn">驗證並顯示信件</button>
+      <div id="reader-output" class="letter-box hidden"></div>
+    </div>
+
+    <div id="reader-password-area" class="hidden">
+      <p class="modal-sub">此收件者使用主密碼驗證。</p>
+      <div class="form-group">
+        <label class="form-label">主密碼</label>
+        <input class="form-input" type="password" id="reader-password" placeholder="請輸入主密碼" />
+      </div>
+      <button class="btn btn-primary" id="reader-unlock-btn2">解密並顯示信件</button>
+      <div id="reader-output2" class="letter-box hidden"></div>
+    </div>
+
+    <button class="btn btn-ghost" onclick="closeModal('modal-reader')" style="margin-top:10px;">關閉</button>
+  </div>
+</div>
+
+<script>
+  // ── Constants ────────────────────────────
+  const DATA_KEY = "dw_data_v4";
+  const LAST_ACTIVE_KEY = "dw_last_active_v4";
+
+  // ── Helpers ──────────────────────────────
+  const el = id => document.getElementById(id);
+
+  function escapeHtml(s) {
+    return String(s)
+      .replaceAll("&","&amp;").replaceAll("<","&lt;")
+      .replaceAll(">","&gt;").replaceAll('"',"&quot;").replaceAll("'","&#39;");
+  }
+
+  function formatDate(ts) {
+    if (!ts) return "尚未設定";
+    return new Date(Number(ts)).toLocaleString("zh-Hant-TW");
+  }
+
+  // ── Crypto ───────────────────────────────
+  async function deriveKey(pw, salt) {
+    const km = await crypto.subtle.importKey("raw", new TextEncoder().encode(pw), "PBKDF2", false, ["deriveKey"]);
+    return crypto.subtle.deriveKey(
+      { name:"PBKDF2", salt, iterations:100000, hash:"SHA-256" },
+      km, { name:"AES-GCM", length:256 }, false, ["encrypt","decrypt"]
+    );
+  }
+
+  async function encryptText(plain, pw) {
+    const iv = crypto.getRandomValues(new Uint8Array(12));
+    const salt = crypto.getRandomValues(new Uint8Array(16));
+    const key = await deriveKey(pw, salt);
+    const enc = await crypto.subtle.encrypt({ name:"AES-GCM", iv }, key, new TextEncoder().encode(plain));
+    return JSON.stringify({ iv:[...iv], salt:[...salt], data:[...new Uint8Array(enc)] });
+  }
+
+  async function decryptText(json, pw) {
+    const o = JSON.parse(json);
+    const key = await deriveKey(pw, new Uint8Array(o.salt));
+    const dec = await crypto.subtle.decrypt({ name:"AES-GCM", iv:new Uint8Array(o.iv) }, key, new Uint8Array(o.data));
+    return new TextDecoder().decode(dec);
+  }
+
+  async function sha256(text) {
+    const buf = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(text));
+    return [...new Uint8Array(buf)].map(b=>b.toString(16).padStart(2,"0")).join("");
+  }
+
+  // ── Data ─────────────────────────────────
+  function loadData() {
+    try { return JSON.parse(localStorage.getItem(DATA_KEY)) || defaults(); }
+    catch { return defaults(); }
+  }
+
+  function defaults() {
+    return { publicMessage:"", thresholdDays:365, pinHash:"", recipients:[] };
+  }
+
+  function saveData(d) { localStorage.setItem(DATA_KEY, JSON.stringify(d)); }
+
+  function isFirstTime() { return !loadData().pinHash; }
+
+  function isExpired(data) {
+    if (el("previewToggle") && el("previewToggle").checked) return true;
+    const last = Number(localStorage.getItem(LAST_ACTIVE_KEY) || Date.now());
+    return (Date.now() - last) / 86400000 >= Number(data.thresholdDays || 365);
+  }
+
+  function getRemainingDays(data) {
+    const last = Number(localStorage.getItem(LAST_ACTIVE_KEY) || Date.now());
+    const days = (Date.now() - last) / 86400000;
+    return Math.max(0, Math.ceil(Number(data.thresholdDays || 365) - days));
+  }
+
+  // ── PIN helpers ──────────────────────────
+  function getPinValue(rowId) {
+    return [...el(rowId).querySelectorAll(".pin-digit")].map(i => i.value).join("");
+  }
+
+  function clearPinRow(rowId) {
+    el(rowId).querySelectorAll(".pin-digit").forEach(i => i.value = "");
+    el(rowId).querySelector(".pin-digit").focus();
+  }
+
+  function initPinRow(rowId) {
+    const digits = el(rowId).querySelectorAll(".pin-digit");
+    digits.forEach((inp, idx) => {
+      inp.addEventListener("input", () => {
+        inp.value = inp.value.replace(/\D/g, "").slice(-1);
+        if (inp.value && idx < digits.length - 1) digits[idx + 1].focus();
+      });
+      inp.addEventListener("keydown", e => {
+        if (e.key === "Backspace" && !inp.value && idx > 0) digits[idx - 1].focus();
+      });
+    });
+  }
+
+  // ── Screen routing ───────────────────────
+  function showScreen(id) {
+    document.querySelectorAll(".screen").forEach(s => s.classList.remove("active"));
+    el(id).classList.add("active");
+  }
+
+  function openModal(id) { el(id).classList.add("open"); }
+  function closeModal(id) { el(id).classList.remove("open"); }
+
+  // ── Setup wizard ─────────────────────────
+  let setupPinValue = "";
+
+  function goSetupStep(n) {
+    [0,1,2].forEach(i => {
+      el(`setup-step-${i}`).classList.toggle("hidden", i !== n);
+      el(`dot${i}`).className = "step-dot" + (i < n ? " done" : i === n ? " active" : "");
+    });
+    if (n === 1) { clearPinRow("setup-pin-row"); clearPinRow("setup-pin-confirm-row"); }
+  }
+
+  function confirmSetupPin() {
+    const pin = getPinValue("setup-pin-row");
+    const confirm = getPinValue("setup-pin-confirm-row");
+    if (pin.length < 6) { el("setup-pin-error").textContent = "請輸入完整的六位數密碼。"; return; }
+    if (pin !== confirm) { el("setup-pin-error").textContent = "兩次輸入不一致，請重新輸入。"; clearPinRow("setup-pin-confirm-row"); return; }
+    el("setup-pin-error").textContent = "";
+    setupPinValue = pin;
+    goSetupStep(2);
+  }
+
+  async function finishSetup() {
+    const threshold = Number(el("setup-threshold").value) || 365;
+    const masterPw = el("setup-master-pw").value;
+    if (!masterPw) { alert("請設定信件加密主密碼。"); return; }
+    if (!setupPinValue) { goSetupStep(1); return; }
+
+    const data = defaults();
+    data.thresholdDays = threshold;
+    data.pinHash = await sha256(setupPinValue);
+    saveData(data);
+    localStorage.setItem(LAST_ACTIVE_KEY, String(Date.now()));
+
+    // store master pw in session only
+    sessionStorage.setItem("dw_mpw", masterPw);
+    sessionStorage.setItem("dw_auth", "1");
+
+    renderEditor();
+    showScreen("screen-editor");
+  }
+
+  // ── Admin login ──────────────────────────
+  function openAdminLogin() {
+    clearPinRow("login-pin-row");
+    el("login-pin-error").textContent = "";
+    openModal("modal-admin-login");
+  }
+
+  async function submitAdminLogin() {
+    const pin = getPinValue("login-pin-row");
+    const data = loadData();
+    const hash = await sha256(pin);
+    if (hash !== data.pinHash) {
+      el("login-pin-error").textContent = "密碼錯誤，請再試一次。";
+      clearPinRow("login-pin-row");
+      return;
+    }
+    closeModal("modal-admin-login");
+    sessionStorage.setItem("dw_auth", "1");
+    renderEditor();
+    showScreen("screen-editor");
+  }
+
+  function logoutEditor() {
+    sessionStorage.removeItem("dw_auth");
+    sessionStorage.removeItem("dw_mpw");
+    route();
+  }
+
+  // ── Routing ──────────────────────────────
+  function route() {
+    const data = loadData();
+
+    // First time
+    if (!data.pinHash) { showScreen("screen-setup"); return; }
+
+    // Already logged in this session
+    if (sessionStorage.getItem("dw_auth") === "1") { renderEditor(); showScreen("screen-editor"); return; }
+
+    // Expired → public
+    if (isExpired(data)) { renderPublic(); showScreen("screen-public"); return; }
+
+    // Otherwise → locked
+    showScreen("screen-locked");
+  }
+
+  // ── Render: Editor ───────────────────────
+  function renderEditor() {
+    const data = loadData();
+    el("editor-public-message").value = data.publicMessage || "";
+    el("editor-threshold").value = data.thresholdDays || 365;
+    el("editor-last-active").textContent = formatDate(localStorage.getItem(LAST_ACTIVE_KEY));
+
+    const expired = isExpired(data);
+    if (expired) {
+      el("editor-status-banner").className = "status-banner status-warn";
+      el("editor-status-text").textContent = `已超過 ${data.thresholdDays} 天未活躍，遺囑已啟動。`;
+      el("editor-remaining").textContent = "0 天（已啟動）";
+    } else {
+      el("editor-status-banner").className = "status-banner status-ok";
+      el("editor-status-text").textContent = `正常運作中，距離啟動還有 ${getRemainingDays(data)} 天。`;
+      el("editor-remaining").textContent = `${getRemainingDays(data)} 天`;
+    }
+
+    renderRecipientManager(data);
+  }
+
+  function renderRecipientManager(data) {
+    const box = el("editor-recipient-manager");
+    if (!data.recipients.length) {
+      box.innerHTML = `<p style="color:var(--subtle);font-size:0.88rem;">尚未建立任何收件者。</p>`;
+      return;
+    }
+    box.innerHTML = "";
+    data.recipients.forEach((r, idx) => {
+      const div = document.createElement("div");
+      div.className = "r-card";
+      div.innerHTML = `
+        <h4>${escapeHtml(r.name || `收件者 ${idx+1}`)}</h4>
+        <div class="r-meta">
+          ${r.useQuestion === "yes" ? "🔐 問題驗證" : "🔑 主密碼驗證"}<br>
+          ${r.encryptedLetter ? "✉️ 信件已加密儲存" : "⚠️ 尚未設定信件"}
+        </div>
+        <div class="btn-row-2">
+          <button class="btn btn-secondary btn-sm" data-edit="${idx}">編輯</button>
+          <button class="btn btn-danger btn-sm" data-del="${idx}">刪除</button>
+        </div>
+      `;
+      div.querySelector("[data-edit]").addEventListener("click", () => openEditRecipient(idx));
+      div.querySelector("[data-del]").addEventListener("click", () => deleteRecipient(idx));
+      box.appendChild(div);
+    });
+  }
+
+  // ── Render: Public ───────────────────────
+  function renderPublic() {
+    const data = loadData();
+    el("public-message-view").textContent = data.publicMessage || "";
+    const list = el("public-recipient-list");
+    list.innerHTML = "";
+    if (!data.recipients.length) {
+      list.innerHTML = `<p style="color:var(--subtle);">尚未設定收件者。</p>`;
+      return;
+    }
+    data.recipients.forEach((r, idx) => {
+      const div = document.createElement("div");
+      div.className = "recipient-select-card";
+      div.innerHTML = `
+        <div>
+          <h4>${escapeHtml(r.name || `收件者 ${idx+1}`)}</h4>
+          <p>${r.useQuestion === "yes" ? "需回答專屬問題" : "需輸入主密碼"}</p>
+        </div>
+        <span class="arrow">→</span>
+      `;
+      div.addEventListener("click", () => openReaderModal(idx));
+      list.appendChild(div);
+    });
+  }
+
+  // ── Recipient CRUD ───────────────────────
+  function openAddRecipient() {
+    el("editing-index").value = "-1";
+    el("modal-recipient-title").textContent = "新增收件者";
+    el("r-name").value = "";
+    el("r-use-question").value = "yes";
+    el("r-question").value = "";
+    el("r-answer").value = "";
+    el("r-letter").value = "";
+    el("r-question-fields").classList.remove("hidden");
+    openModal("modal-recipient");
+  }
+
+  function openEditRecipient(idx) {
+    const r = loadData().recipients[idx];
+    el("editing-index").value = String(idx);
+    el("modal-recipient-title").textContent = "編輯收件者";
+    el("r-name").value = r.name || "";
+    el("r-use-question").value = r.useQuestion || "yes";
+    el("r-question").value = r.question || "";
+    el("r-answer").value = "";
+    el("r-letter").value = "";
+    toggleQuestionFields();
+    openModal("modal-recipient");
+    alert("已載入資料。為確保安全，請重新輸入答案與信件後再儲存。");
+  }
+
+  function toggleQuestionFields() {
+    el("r-question-fields").classList.toggle("hidden", el("r-use-question").value !== "yes");
+  }
+
+  function deleteRecipient(idx) {
+    const data = loadData();
+    if (!confirm(`確定要刪除「${data.recipients[idx].name}」嗎？`)) return;
+    data.recipients.splice(idx, 1);
+    saveData(data);
+    renderEditor();
+  }
+
+  el("saveRecipientBtn").addEventListener("click", async () => {
+    const data = loadData();
+    const idx = Number(el("editing-index").value);
+    const name = el("r-name").value.trim();
+    const useQuestion = el("r-use-question").value;
+    const question = el("r-question").value.trim();
+    const answer = el("r-answer").value.trim();
+    const letter = el("r-letter").value;
+    const masterPw = el("editor-master-pw").value || sessionStorage.getItem("dw_mpw") || "";
+
+    if (!name) { alert("請輸入收件者名稱。"); return; }
+    if (!masterPw) { alert("請在基本設定中輸入主密碼。"); return; }
+    if (!letter.trim()) { alert("請輸入信件內容。"); return; }
+    if (useQuestion === "yes" && (!question || !answer)) { alert("請輸入驗證問題與答案。"); return; }
+
+    const encryptedLetter = await encryptText(letter, masterPw);
+    const answerHash = useQuestion === "yes" ? await sha256(answer.toLowerCase()) : "";
+
+    const recipient = { name, useQuestion, question: useQuestion === "yes" ? question : "", answerHash, encryptedLetter };
+
+    if (idx >= 0 && idx < data.recipients.length) data.recipients[idx] = recipient;
+    else data.recipients.push(recipient);
+
+    saveData(data);
+    closeModal("modal-recipient");
+    renderEditor();
+    alert("收件者已儲存。");
+  });
+
+  // ── Editor config ────────────────────────
+  el("saveConfigBtn").addEventListener("click", () => {
+    const data = loadData();
+    data.publicMessage = el("editor-public-message").value.trim();
+    data.thresholdDays = Number(el("editor-threshold").value) || 365;
+    saveData(data);
+    localStorage.setItem(LAST_ACTIVE_KEY, String(Date.now()));
+    renderEditor();
+    alert("設定已儲存。");
+  });
+
+  el("pingBtn").addEventListener("click", () => {
+    localStorage.setItem(LAST_ACTIVE_KEY, String(Date.now()));
+    renderEditor();
+    alert("已更新活躍時間。");
+  });
+
+  el("exportBtn").addEventListener("click", () => {
+    const payload = { config: loadData(), lastActive: localStorage.getItem(LAST_ACTIVE_KEY) };
+    const blob = new Blob([JSON.stringify(payload, null, 2)], { type: "application/json" });
+    const url = URL.createObjectURL(blob);
+    const a = Object.assign(document.createElement("a"), { href: url, download: "digital-will-backup.json" });
+    a.click();
+    URL.revokeObjectURL(url);
+  });
+
+  el("resetBtn").addEventListener("click", () => {
+    if (!confirm("確定清除所有資料？此操作無法復原。")) return;
+    localStorage.removeItem(DATA_KEY);
+    localStorage.removeItem(LAST_ACTIVE_KEY);
+    sessionStorage.clear();
+    location.reload();
+  });
+
+  // ── Reader modal ─────────────────────────
+  function openReaderModal(idx) {
+    const r = loadData().recipients[idx];
+    el("reader-title").textContent = `${r.name} 的信件`;
+    el("reader-answer").value = "";
+    el("reader-password").value = "";
+    el("reader-output").textContent = "";
+    el("reader-output").classList.add("hidden");
+    el("reader-output2").textContent = "";
+    el("reader-output2").classList.add("hidden");
+
+    if (r.useQuestion === "yes") {
+      el("reader-question-area").classList.remove("hidden");
+      el("reader-password-area").classList.add("hidden");
+      el("reader-question-text").textContent = r.question ? `問題：${r.question}` : "請回答專屬問題。";
+
+      el("reader-unlock-btn").onclick = async () => {
+        const hash = await sha256(el("reader-answer").value.trim().toLowerCase());
+        if (hash !== r.answerHash) {
+          el("reader-output").textContent = "❌ 答案不正確，請再試一次。";
+          el("reader-output").classList.remove("hidden");
+          return;
+        }
+        const pw = sessionStorage.getItem("dw_mpw") || el("editor-master-pw").value || prompt("請輸入信件加密主密碼：") || "";
+        try {
+          el("reader-output").textContent = await decryptText(r.encryptedLetter, pw);
+          el("reader-output").classList.remove("hidden");
+        } catch {
+          el("reader-output").textContent = "❌ 解密失敗，主密碼可能有誤。";
+          el("reader-output").classList.remove("hidden");
+        }
+      };
+    } else {
+      el("reader-question-area").classList.add("hidden");
+      el("reader-password-area").classList.remove("hidden");
+
+      el("reader-unlock-btn2").onclick = async () => {
+        const pw = el("reader-password").value || sessionStorage.getItem("dw_mpw") || "";
+        try {
+          el("reader-output2").textContent = await decryptText(r.encryptedLetter, pw);
+          el("reader-output2").classList.remove("hidden");
+        } catch {
+          el("reader-output2").textContent = "❌ 解密失敗，密碼可能有誤。";
+          el("reader-output2").classList.remove("hidden");
+        }
+      };
+    }
+
+    openModal("modal-reader");
+  }
+
+  // ── Preview toggle ───────────────────────
+  el("previewToggle").addEventListener("change", () => {
+    renderEditor();
+    if (el("previewToggle").checked) {
+      renderPublic();
+      // show public page in background for reference? Just re-render editor status.
+    }
+  });
+
+  // ── Init ─────────────────────────────────
+  el("r-use-question").addEventListener("change", toggleQuestionFields);
+  el("openAddBtn").addEventListener("click", openAddRecipient);
+
+  initPinRow("setup-pin-row");
+  initPinRow("setup-pin-confirm-row");
+  initPinRow("login-pin-row");
+
+  if (!localStorage.getItem(LAST_ACTIVE_KEY)) {
+    localStorage.setItem(LAST_ACTIVE_KEY, String(Date.now()));
+  }
+
+  route();
+</script>
+</body>
+</html>
