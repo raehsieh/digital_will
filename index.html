@@ -469,7 +469,11 @@
         <button class="btn btn-primary" id="saveConfigBtn">儲存設定</button>
         <button class="btn btn-secondary" id="exportBtn">📦 匯出備份</button>
       </div>
-      <button class="btn btn-danger" id="resetBtn" style="margin-top:10px;">清除所有資料</button>
+      <div class="btn-row-2" style="margin-top:10px;">
+        <button class="btn btn-secondary" id="importBtn">📥 匯入備份</button>
+        <button class="btn btn-danger" id="resetBtn">清除所有資料</button>
+      </div>
+      <input type="file" id="import-file-input" accept="application/json" class="hidden" />
     </div>
 
     <div class="card">
@@ -1009,11 +1013,46 @@
   });
 
   el("exportBtn").addEventListener("click", () => {
-    const payload = { config: loadData(), lastActive: localStorage.getItem(LAST_ACTIVE_KEY) };
+    const payload = {
+      config: loadData(),
+      lastActive: localStorage.getItem(LAST_ACTIVE_KEY),
+      readSet: localStorage.getItem(READ_KEY)
+    };
     const blob = new Blob([JSON.stringify(payload, null, 2)], { type:"application/json" });
     const url = URL.createObjectURL(blob);
     Object.assign(document.createElement("a"), { href:url, download:"digital-will-backup.json" }).click();
     URL.revokeObjectURL(url);
+  });
+
+  el("importBtn").addEventListener("click", () => {
+    el("import-file-input").value = "";
+    el("import-file-input").click();
+  });
+
+  el("import-file-input").addEventListener("change", e => {
+    const file = e.target.files[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = ev => {
+      try {
+        const payload = JSON.parse(ev.target.result);
+        if (!payload.config || !payload.config.pinHash) {
+          alert("備份檔案格式不正確，無法匯入。");
+          return;
+        }
+        if (!confirm("匯入備份將覆蓋目前所有資料，確定繼續？")) return;
+        saveData(payload.config);
+        if (payload.lastActive) localStorage.setItem(LAST_ACTIVE_KEY, payload.lastActive);
+        if (payload.readSet) localStorage.setItem(READ_KEY, payload.readSet);
+        sessionStorage.setItem("dw_auth", "1");
+        renderEditor();
+        showScreen("screen-editor");
+        alert("備份已成功匯入！");
+      } catch {
+        alert("讀取備份失敗，請確認檔案是否正確。");
+      }
+    };
+    reader.readAsText(file);
   });
 
   el("resetBtn").addEventListener("click", () => {
@@ -1033,6 +1072,10 @@
     el("reader-output").classList.add("hidden");
     el("reader-image").classList.add("hidden");
     el("reader-answer").value = "";
+    el("reader-answer").disabled = false;
+    el("reader-unlock-btn").textContent = "驗證並顯示信件";
+    el("reader-unlock-btn").disabled = false;
+    el("reader-unlock-btn").style.cssText = "";
     el("reader-public-output").textContent = "";
     el("reader-public-image").classList.add("hidden");
 
@@ -1058,6 +1101,11 @@
         }
         try {
           const plain = await decryptWithAnswer(r.encryptedLetter, ans);
+          // 換成成功狀態
+          el("reader-unlock-btn").textContent = "✓ 回答正確";
+          el("reader-unlock-btn").disabled = true;
+          el("reader-unlock-btn").style.cssText = "background:var(--success);cursor:default;opacity:1;";
+          el("reader-answer").disabled = true;
           el("reader-output").textContent = plain;
           el("reader-output").classList.remove("hidden");
           if (r.imageData) { el("reader-image").src = r.imageData; el("reader-image").classList.remove("hidden"); }
