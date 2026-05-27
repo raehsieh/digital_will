@@ -526,6 +526,17 @@
   </div>
 </div>
 
+<!-- ── Modal：確認重置 ── -->
+<div class="modal-overlay" id="modal-confirm-reset">
+  <div class="modal">
+    <h3>確認重置計時</h3>
+    <p class="modal-sub" style="margin-bottom:28px;">遺囑目前已公開。重置後將重新鎖定，家屬將無法再看到公開頁面，直到下次超時為止。</p>
+    <p style="font-size:26px; font-weight:700; color:var(--text); text-align:center; margin-bottom:28px; font-family:'Noto Serif TC',serif;">確定要重置嗎？</p>
+    <button class="btn btn-accent" id="confirm-reset-btn">確定，重置並鎖定</button>
+    <button class="btn btn-secondary" onclick="closeModal('modal-confirm-reset')" style="margin-top:10px;">取消</button>
+  </div>
+</div>
+
 <!-- ── Modal：管理者登入 ── -->
 <div class="modal-overlay" id="modal-admin-login">
   <div class="modal">
@@ -1018,9 +1029,27 @@
   });
 
   el("pingBtn").addEventListener("click", () => {
+    const data = loadData();
+    const expired = isExpired(data);
+
+    if (expired) {
+      // 公開狀態下，跳出確認視窗
+      openModal("modal-confirm-reset");
+    } else {
+      // 正常狀態下直接重置
+      localStorage.setItem(LAST_ACTIVE_KEY, String(Date.now()));
+      renderEditor();
+      alert("已更新活躍時間。");
+    }
+  });
+
+  el("confirm-reset-btn").addEventListener("click", () => {
+    closeModal("modal-confirm-reset");
     localStorage.setItem(LAST_ACTIVE_KEY, String(Date.now()));
+    // 立即鎖定：切回 locked 畫面
     renderEditor();
-    alert("已更新活躍時間。");
+    showScreen("screen-locked");
+    alert("已重置計時，遺囑已重新鎖定。");
   });
 
   el("exportBtn").addEventListener("click", () => {
